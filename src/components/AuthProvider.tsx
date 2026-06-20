@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         id: getDeterministicUUID(clerkUser.id),
         email: clerkUser.primaryEmailAddress?.emailAddress || "",
         user_metadata: {
-          full_name: clerkUser.fullName || clerkUser.username || "",
+          full_name: clerkUser.fullName || (clerkUser.unsafeMetadata?.full_name as string) || clerkUser.username || "",
         },
       }
     : null;

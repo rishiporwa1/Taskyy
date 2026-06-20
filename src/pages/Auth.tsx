@@ -75,7 +75,7 @@ export default function Auth() {
       toast({
         variant: "destructive",
         title: "Error signing in",
-        description: err.errors?.[0]?.message || err.message || "An error occurred",
+        description: err.errors?.[0]?.longMessage || err.errors?.[0]?.message || err.message || "An error occurred",
       });
     } finally {
       setLoading(false);
@@ -91,18 +91,10 @@ export default function Auth() {
       const result = await signUp.create({
         emailAddress: email,
         password,
-      });
-
-      try {
-        if (fullName) {
-          await signUp.update({
-            firstName: fullName.split(" ")[0] || "",
-            lastName: fullName.split(" ").slice(1).join(" ") || "",
-          });
+        unsafeMetadata: {
+          full_name: fullName,
         }
-      } catch (nameErr) {
-        console.error("Error setting name during sign up:", nameErr);
-      }
+      });
 
       if (result.status === "complete") {
         await setSignUpActive({ session: result.createdSessionId });
@@ -125,7 +117,7 @@ export default function Auth() {
       toast({
         variant: "destructive",
         title: "Error signing up",
-        description: err.errors?.[0]?.message || err.message || "An error occurred",
+        description: err.errors?.[0]?.longMessage || err.errors?.[0]?.message || err.message || "An error occurred",
       });
     } finally {
       setLoading(false);
@@ -154,7 +146,7 @@ export default function Auth() {
       toast({
         variant: "destructive",
         title: "Verification failed",
-        description: err.errors?.[0]?.message || err.message || "An error occurred",
+        description: err.errors?.[0]?.longMessage || err.errors?.[0]?.message || err.message || "An error occurred",
       });
     } finally {
       setLoading(false);
@@ -182,7 +174,7 @@ export default function Auth() {
       toast({
         variant: "destructive",
         title: "Error requesting reset",
-        description: err.errors?.[0]?.message || err.message || "An error occurred",
+        description: err.errors?.[0]?.longMessage || err.errors?.[0]?.message || err.message || "An error occurred",
       });
     } finally {
       setLoading(false);
@@ -220,7 +212,7 @@ export default function Auth() {
       toast({
         variant: "destructive",
         title: "Reset failed",
-        description: err.errors?.[0]?.message || err.message || "An error occurred",
+        description: err.errors?.[0]?.longMessage || err.errors?.[0]?.message || err.message || "An error occurred",
       });
     } finally {
       setLoading(false);
