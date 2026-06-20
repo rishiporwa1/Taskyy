@@ -139,6 +139,9 @@ export default function YearlyGoals() {
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-slate-950 sm:text-4xl">Yearly Goals</h1>
             <p className="text-sm sm:text-base text-gray-600">Plan your achievements for the year</p>
+            <p className="text-sm italic text-indigo-600/80 dark:text-indigo-400/80 border-l-2 border-indigo-400 pl-3 py-0.5 mt-2 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+              "The secret of getting ahead is getting started."
+            </p>
           </div>
 
           <Card className="bg-white/50 backdrop-blur-sm border border-gray-200/80 shadow-sm">

@@ -140,6 +140,9 @@ export default function DailyPlan() {
           <div className="space-y-2">
             <h1 className="text-2xl text-slate-950 font-bold sm:text-4xl">Daily Plan</h1>
             <p className="text-sm sm:text-base text-gray-600">Plan your tasks for today</p>
+            <p className="text-sm italic text-indigo-600/80 dark:text-indigo-400/80 border-l-2 border-indigo-400 pl-3 py-0.5 mt-2 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+              "Plan your day, own your life."
+            </p>
           </div>
 
           <Card className="bg-blue-50 border-blue-100">

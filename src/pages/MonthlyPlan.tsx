@@ -203,7 +203,10 @@ export default function MonthlyPlan() {
         <div className="md:col-span-2 space-y-4 sm:space-y-6">
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-slate-950 sm:text-4xl">Monthly Plan</h1>
-            {goal && <div>
+            <p className="text-sm italic text-indigo-600/80 dark:text-indigo-400/80 border-l-2 border-indigo-400 pl-3 py-0.5 mt-2 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+              "Focus on the step in front of you, not the whole staircase."
+            </p>
+            {goal && <div className="mt-4">
                 <h2 className="text-lg sm:text-xl font-semibold text-primary-dark">{goal.title}</h2>
                 <p className="text-xs sm:text-sm text-gray-600">{goal.description}</p>
               </div>}

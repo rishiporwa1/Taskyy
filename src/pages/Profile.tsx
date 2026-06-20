@@ -195,6 +195,9 @@ export default function Profile() {
 
           <CardHeader className="pb-2">
             <CardTitle className="text-xl sm:text-2xl text-slate-950 font-bold">Profile</CardTitle>
+            <p className="text-sm italic text-indigo-600/80 dark:text-indigo-400/80 border-l-2 border-indigo-400 pl-3 py-0.5 mt-2 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+              "Invest in yourself. You are your greatest asset."
+            </p>
           </CardHeader>
           
           <CardContent className="space-y-6">

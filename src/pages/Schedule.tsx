@@ -178,6 +178,9 @@ const Schedule = () => {
           <div className="space-y-2">
             <h1 className="text-2xl font-bold text-slate-950 sm:text-4xl">Daily Schedule</h1>
             <p className="text-sm sm:text-base text-gray-600">Plan your day hour by hour</p>
+            <p className="text-sm italic text-indigo-600/80 dark:text-indigo-400/80 border-l-2 border-indigo-400 pl-3 py-0.5 mt-2 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+              "Schedule your priorities, don't prioritize your schedule."
+            </p>
           </div>
 
           <Card className="bg-white/50 backdrop-blur-sm">

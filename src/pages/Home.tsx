@@ -66,10 +66,13 @@ const Home = () => {
         <div className="space-y-4 sm:space-y-6 animate-fade-in">
           <div className="space-y-2">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-950">
-              Welcome to Study Planner
+              Welcome to Taskyy
             </h1>
             <p className="text-base sm:text-lg text-gray-600">
               Your personal task manager for achieving goals and staying organized.
+            </p>
+            <p className="text-sm italic text-indigo-600/80 dark:text-indigo-400/80 border-l-2 border-indigo-400 pl-3 py-0.5 mt-2 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+              "Organize your chaos, master your time."
             </p>
           </div>
 
