@@ -91,9 +91,18 @@ export default function Auth() {
       const result = await signUp.create({
         emailAddress: email,
         password,
-        firstName: fullName.split(" ")[0] || "",
-        lastName: fullName.split(" ").slice(1).join(" ") || "",
       });
+
+      try {
+        if (fullName) {
+          await signUp.update({
+            firstName: fullName.split(" ")[0] || "",
+            lastName: fullName.split(" ").slice(1).join(" ") || "",
+          });
+        }
+      } catch (nameErr) {
+        console.error("Error setting name during sign up:", nameErr);
+      }
 
       if (result.status === "complete") {
         await setSignUpActive({ session: result.createdSessionId });
