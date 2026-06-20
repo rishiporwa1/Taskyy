@@ -1,28 +1,32 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/components/AuthProvider";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { ProfileAvatar } from "@/components/profile/ProfileAvatar";
 import { PasswordChangeDialog } from "@/components/profile/PasswordChangeDialog";
 import { ProfileForm } from "@/components/profile/ProfileForm";
 import { ProfileCover } from "@/components/profile/ProfileCover";
+import { useUser } from "@clerk/clerk-react";
+import { Trash2 } from "lucide-react";
 
 interface Profile {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
-  cover_url: string | null; // Add cover_url to interface
+  cover_url: string | null;
   resume_url: string | null;
   progress_score: number | null;
 }
 
 export default function Profile() {
   const { user, signOut } = useAuth();
+  const { user: clerkUser } = useUser();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     getProfile();
@@ -79,6 +83,75 @@ export default function Profile() {
     }
   }
 
+  const handleDeleteAccount = async () => {
+    if (!user) return;
+    
+    const confirmDelete = window.confirm(
+      "Are you absolutely sure you want to permanently delete your account? This will delete all your profile data, yearly goals, monthly tasks, daily tasks, and schedule. This action cannot be undone."
+    );
+    
+    if (!confirmDelete) return;
+
+    try {
+      setDeleting(true);
+      const userId = user.id;
+
+      // 1. Delete monthly tasks (goals sub-items)
+      const { error: monthlyErr } = await supabase
+        .from("monthly_tasks")
+        .delete()
+        .eq("user_id", userId);
+      if (monthlyErr) throw monthlyErr;
+
+      // 2. Delete yearly goals
+      const { error: goalsErr } = await supabase
+        .from("yearly_goals")
+        .delete()
+        .eq("user_id", userId);
+      if (goalsErr) throw goalsErr;
+
+      // 3. Delete daily tasks
+      const { error: dailyErr } = await supabase
+        .from("daily_tasks")
+        .delete()
+        .eq("user_id", userId);
+      if (dailyErr) throw dailyErr;
+
+      // 4. Delete schedule items
+      const { error: scheduleErr } = await supabase
+        .from("schedule_items")
+        .delete()
+        .eq("user_id", userId);
+      if (scheduleErr) throw scheduleErr;
+
+      // 5. Delete profile record
+      const { error: profileErr } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", userId);
+      if (profileErr) throw profileErr;
+
+      // 6. Delete Clerk Auth Account
+      if (clerkUser) {
+        await clerkUser.delete();
+        toast({
+          title: "Account deleted",
+          description: "Your account and data have been permanently deleted.",
+        });
+        await signOut();
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error deleting account",
+        description: error instanceof Error ? error.message : "An error occurred",
+      });
+      console.error("Account deletion error:", error);
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   if (loading) {
     return <div className="flex justify-center p-8">Loading...</div>;
   }
@@ -126,6 +199,35 @@ export default function Profile() {
               isOpen={isPasswordDialogOpen}
               onOpenChange={setIsPasswordDialogOpen}
             />
+          </CardContent>
+        </Card>
+
+        {/* Danger Zone Card */}
+        <Card className="border border-red-200/60 bg-red-50/10 dark:bg-red-950/5 mt-6 shadow-sm overflow-hidden">
+          <CardHeader className="pb-2 border-b border-red-100/60 dark:border-red-950/20">
+            <CardTitle className="text-lg font-bold text-red-600 flex items-center gap-2">
+              <Trash2 className="w-5 h-5" />
+              Danger Zone
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div>
+                <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Delete Account</p>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Permanently delete your profile and all associated tasks, goals, and schedule data. This action cannot be undone.
+                </p>
+              </div>
+              <Button 
+                variant="destructive"
+                size="sm"
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+                className="w-full sm:w-auto bg-red-600 hover:bg-red-500 font-normal shrink-0"
+              >
+                {deleting ? "Deleting..." : "Delete Account"}
+              </Button>
+            </div>
           </CardContent>
         </Card>
       </div>
