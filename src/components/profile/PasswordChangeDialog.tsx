@@ -20,9 +20,11 @@ interface PasswordChangeDialogProps {
 
 export function PasswordChangeDialog({ isOpen, onOpenChange }: PasswordChangeDialogProps) {
   const { user } = useUser();
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [changingPassword, setChangingPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -37,14 +39,16 @@ export function PasswordChangeDialog({ isOpen, onOpenChange }: PasswordChangeDia
         throw new Error("User session not found in Clerk");
       }
 
-      await user.update({ 
-        password: newPassword 
+      await user.updatePassword({ 
+        currentPassword,
+        newPassword 
       });
 
       toast({
         title: "Password updated",
         description: "Your password has been changed successfully.",
       });
+      setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
       onOpenChange(false);
@@ -61,8 +65,10 @@ export function PasswordChangeDialog({ isOpen, onOpenChange }: PasswordChangeDia
 
   const handleCancel = () => {
     onOpenChange(false);
+    setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
+    setShowCurrentPassword(false);
     setShowPassword(false);
     setShowConfirmPassword(false);
   };
@@ -75,6 +81,26 @@ export function PasswordChangeDialog({ isOpen, onOpenChange }: PasswordChangeDia
         </DialogHeader>
         <div className="space-y-4 py-4">
           <div className="space-y-2">
+            <Label htmlFor="currentPassword">Current Password</Label>
+            <div className="relative">
+              <Input
+                id="currentPassword"
+                type={showCurrentPassword ? "text" : "password"}
+                value={currentPassword}
+                onChange={(e) => setCurrentPassword(e.target.value)}
+                className="bg-white pr-10"
+                placeholder="Enter current password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+              >
+                {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+          </div>
+          <div className="space-y-2">
             <Label htmlFor="newPassword">New Password</Label>
             <div className="relative">
               <Input
@@ -83,6 +109,7 @@ export function PasswordChangeDialog({ isOpen, onOpenChange }: PasswordChangeDia
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 className="bg-white pr-10"
+                placeholder="Enter new password"
               />
               <button
                 type="button"
@@ -102,6 +129,7 @@ export function PasswordChangeDialog({ isOpen, onOpenChange }: PasswordChangeDia
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 className="bg-white pr-10"
+                placeholder="Confirm new password"
               />
               <button
                 type="button"
@@ -125,7 +153,7 @@ export function PasswordChangeDialog({ isOpen, onOpenChange }: PasswordChangeDia
           <Button
             size="sm"
             onClick={changePassword}
-            disabled={changingPassword || !newPassword || !confirmPassword}
+            disabled={changingPassword || !currentPassword || !newPassword || !confirmPassword}
             className="w-full sm:w-auto bg-gray-500 hover:bg-gray-400 text-white font-normal"
           >
             {changingPassword ? "Changing Password..." : "Change Password"}
