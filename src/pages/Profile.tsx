@@ -67,7 +67,11 @@ export default function Profile() {
       toast({
         variant: "destructive",
         title: "Error loading profile",
-        description: error instanceof Error ? error.message : "An error occurred",
+        description: error && typeof error === "object" && "message" in error 
+          ? (error as any).message 
+          : error instanceof Error 
+            ? error.message 
+            : "An error occurred",
       });
       console.error("Profile loading error:", error);
     } finally {
