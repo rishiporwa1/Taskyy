@@ -4,6 +4,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { AuthProvider } from "@/components/AuthProvider";
 import Home from "@/pages/Home";
 import Auth from "@/pages/Auth";
+import ResetPassword from "@/pages/ResetPassword";
 import Profile from "@/pages/Profile";
 import Schedule from "@/pages/Schedule";
 import YearlyGoals from "@/pages/YearlyGoals";
@@ -36,6 +37,7 @@ function App() {
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route 
                 path="/profile" 
                 element={
