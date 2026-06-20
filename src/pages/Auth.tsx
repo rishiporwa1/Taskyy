@@ -37,6 +37,11 @@ export default function Auth() {
   const [newPassword, setNewPassword] = useState("");
   const [confirmNewPassword, setConfirmNewPassword] = useState("");
 
+  // Sign in MFA / Client Trust states
+  const [pendingSecondFactor, setPendingSecondFactor] = useState(false);
+  const [secondFactorCode, setSecondFactorCode] = useState("");
+  const [secondFactorStrategy, setSecondFactorStrategy] = useState<string | null>(null);
+
   const navigate = useNavigate();
   const { isLoaded: signInLoaded, signIn, setActive: setSignInActive } = useSignIn();
   const { isLoaded: signUpLoaded, signUp, setActive: setSignUpActive } = useSignUp();
@@ -70,13 +75,76 @@ export default function Auth() {
           description: "You have successfully signed in.",
         });
         navigate("/profile");
+      } else if (result.status === "needs_second_factor" || result.status === "needs_client_trust") {
+        const factor = result.supportedSecondFactors?.find(
+          (f) => f.strategy === "totp" || f.strategy === "email_code" || f.strategy === "phone_code" || f.strategy === "backup_code"
+        );
+        if (factor) {
+          if (factor.strategy === "email_code" || factor.strategy === "phone_code") {
+            await signIn.prepareSecondFactor({ strategy: factor.strategy });
+          }
+          setSecondFactorStrategy(factor.strategy);
+          setPendingSecondFactor(true);
+          toast({
+            title: "Verification required",
+            description: factor.strategy === "email_code" || factor.strategy === "phone_code"
+              ? `A verification code has been sent to your ${factor.strategy === "email_code" ? "email" : "phone"}.`
+              : `Please enter your ${factor.strategy === "totp" ? "authenticator app code" : "backup code"}.`,
+          });
+        } else {
+          toast({
+            variant: "destructive",
+            title: "Verification required",
+            description: "No supported verification method found. Please contact support.",
+          });
+        }
       } else {
         console.warn("Sign in status not complete:", result.status);
+        toast({
+          variant: "destructive",
+          title: "Login failed",
+          description: `Login status is incomplete: ${result.status}`,
+        });
       }
     } catch (err: any) {
       toast({
         variant: "destructive",
         title: "Error signing in",
+        description: err.errors?.[0]?.longMessage || err.errors?.[0]?.message || err.message || "An error occurred",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Second factor verification handler
+  const handleSecondFactorSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!signInLoaded || !secondFactorStrategy) return;
+    setLoading(true);
+    try {
+      const result = await signIn.attemptSecondFactor({
+        strategy: secondFactorStrategy as any,
+        code: secondFactorCode,
+      });
+      if (result.status === "complete") {
+        await setSignInActive({ session: result.createdSessionId });
+        toast({
+          title: "Welcome back!",
+          description: "You have successfully signed in.",
+        });
+        navigate("/profile");
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Verification failed",
+          description: `Unexpected sign-in status: ${result.status}`,
+        });
+      }
+    } catch (err: any) {
+      toast({
+        variant: "destructive",
+        title: "Verification failed",
         description: err.errors?.[0]?.longMessage || err.errors?.[0]?.message || err.message || "An error occurred",
       });
     } finally {
@@ -226,6 +294,9 @@ export default function Auth() {
     setPassword("");
     setFullName("");
     setShowPassword(false);
+    setPendingSecondFactor(false);
+    setSecondFactorCode("");
+    setSecondFactorStrategy(null);
   }, [mode]);
 
   // Reset all states when switching forms
@@ -234,6 +305,9 @@ export default function Auth() {
     setIsForgotPassword(false);
     setPendingVerification(false);
     setPendingPasswordReset(false);
+    setPendingSecondFactor(false);
+    setSecondFactorCode("");
+    setSecondFactorStrategy(null);
     setEmail("");
     setPassword("");
     setFullName("");
@@ -241,6 +315,56 @@ export default function Auth() {
     setShowNewPassword(false);
     setShowConfirmNewPassword(false);
   };
+
+  // Sign In Second Factor / Device Verification Screen
+  if (pendingSecondFactor) {
+    return (
+      <div className="min-h-[80vh] flex items-center justify-center px-4 sm:px-6">
+        <Card className="w-full max-w-md bg-white/50 backdrop-blur-sm border border-slate-200/80 shadow-sm">
+          <CardHeader className="space-y-1">
+            <CardTitle className="text-xl sm:text-2xl text-slate-950 font-bold">Verify Your Identity</CardTitle>
+            <CardDescription className="text-sm sm:text-base">
+              {secondFactorStrategy === "email_code" 
+                ? "We sent a verification code to your email. Please enter it below to confirm your device."
+                : secondFactorStrategy === "phone_code"
+                  ? "We sent a verification code to your phone. Please enter it below to confirm your device."
+                  : secondFactorStrategy === "totp"
+                    ? "Please enter the code from your authenticator app to complete sign in."
+                    : "Please enter your backup code to complete sign in."}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={handleSecondFactorSubmit} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="secondFactorCode">Verification Code</Label>
+                <Input
+                  id="secondFactorCode"
+                  type="text"
+                  value={secondFactorCode}
+                  onChange={(e) => setSecondFactorCode(e.target.value)}
+                  required
+                  className="bg-white"
+                  placeholder={secondFactorStrategy === "backup_code" ? "Enter backup code" : "Enter 6-digit code"}
+                />
+              </div>
+              <Button type="submit" disabled={loading} className="w-full bg-gray-500 hover:bg-gray-400 text-white font-normal">
+                {loading ? "Verifying..." : "Verify Code"}
+              </Button>
+              <div className="text-center">
+                <button
+                  type="button"
+                  onClick={() => toggleForm(false)}
+                  className="text-xs sm:text-sm text-blue-600 hover:underline mt-2"
+                >
+                  Back to Sign In
+                </button>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // 1. Sign Up Email Verification Screen
   if (pendingVerification) {
