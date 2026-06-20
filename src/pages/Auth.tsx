@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSignIn, useSignUp } from "@clerk/clerk-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { getDeterministicUUID } from "@/components/AuthProvider";
 
 export default function Auth() {
-  const [isSignUp, setIsSignUp] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const mode = searchParams.get("mode");
+  const isSignUp = mode === "signup";
   const [isForgotPassword, setIsForgotPassword] = useState(false);
   
   // Input fields
@@ -38,6 +40,13 @@ export default function Auth() {
   const navigate = useNavigate();
   const { isLoaded: signInLoaded, signIn, setActive: setSignInActive } = useSignIn();
   const { isLoaded: signUpLoaded, signUp, setActive: setSignUpActive } = useSignUp();
+
+  // Reset fields on mode change
+  useEffect(() => {
+    setPassword("");
+    setFullName("");
+    setShowPassword(false);
+  }, [mode]);
 
   // Helper to sync profile after successful sign up
   const createProfileRecord = async (userId: string, name: string) => {
@@ -221,7 +230,7 @@ export default function Auth() {
 
   // Reset all states when switching forms
   const toggleForm = (isRegister: boolean) => {
-    setIsSignUp(isRegister);
+    setSearchParams({ mode: isRegister ? "signup" : "signin" });
     setIsForgotPassword(false);
     setPendingVerification(false);
     setPendingPasswordReset(false);

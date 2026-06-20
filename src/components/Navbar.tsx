@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "./AuthProvider";
 import { Button } from "@/components/ui/button";
 import { Calendar, ListTodo, Menu, Target, User, X, NotebookPen } from "lucide-react";
@@ -8,10 +8,15 @@ import { Calendar, ListTodo, Menu, Target, User, X, NotebookPen } from "lucide-r
 export default function Navbar() {
   const { user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);
   };
+
+  const isAuthPage = location.pathname === "/auth";
+  const searchParams = new URLSearchParams(location.search);
+  const isSignUpMode = searchParams.get("mode") === "signup";
 
   return (
     <nav className="sticky top-0 z-50 bg-white/70 backdrop-blur-md border-b border-slate-200/80">
@@ -68,8 +73,12 @@ export default function Navbar() {
                 </Button>
               </>
             ) : (
-              <Button asChild>
-                <Link to="/auth">Sign In</Link>
+              <Button asChild className="bg-gray-500 hover:bg-gray-400 text-white font-normal shadow-sm">
+                {isAuthPage && !isSignUpMode ? (
+                  <Link to="/auth?mode=signup">Sign Up</Link>
+                ) : (
+                  <Link to="/auth?mode=signin">Sign In</Link>
+                )}
               </Button>
             )}
           </div>
@@ -107,8 +116,12 @@ export default function Navbar() {
                   </Button>
                 </>
               ) : (
-                <Button asChild className="w-full" onClick={() => setIsMenuOpen(false)}>
-                  <Link to="/auth">Sign In</Link>
+                <Button asChild className="w-full bg-gray-500 hover:bg-gray-400 text-white font-normal shadow-sm" onClick={() => setIsMenuOpen(false)}>
+                  {isAuthPage && !isSignUpMode ? (
+                    <Link to="/auth?mode=signup">Sign Up</Link>
+                  ) : (
+                    <Link to="/auth?mode=signin">Sign In</Link>
+                  )}
                 </Button>
               )}
             </div>

@@ -10,6 +10,14 @@ import { ProfileForm } from "@/components/profile/ProfileForm";
 import { ProfileCover } from "@/components/profile/ProfileCover";
 import { useUser } from "@clerk/clerk-react";
 import { Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 interface Profile {
   id: string;
@@ -26,6 +34,7 @@ export default function Profile() {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [loading, setLoading] = useState(true);
   const [isPasswordDialogOpen, setIsPasswordDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
@@ -85,12 +94,6 @@ export default function Profile() {
 
   const handleDeleteAccount = async () => {
     if (!user) return;
-    
-    const confirmDelete = window.confirm(
-      "Are you absolutely sure you want to permanently delete your account? This will delete all your profile data, yearly goals, monthly tasks, daily tasks, and schedule. This action cannot be undone."
-    );
-    
-    if (!confirmDelete) return;
 
     try {
       setDeleting(true);
@@ -138,13 +141,24 @@ export default function Profile() {
           title: "Account deleted",
           description: "Your account and data have been permanently deleted.",
         });
+        setIsDeleteDialogOpen(false);
         await signOut();
       }
-    } catch (error) {
+    } catch (error: any) {
+      const errorMsg = error?.message || error?.longMessage || "";
+      const isRecentLoginError = 
+        error?.errors?.[0]?.code === "user_reauthentication_required" || 
+        errorMsg.toLowerCase().includes("reauthenticate") ||
+        errorMsg.toLowerCase().includes("recent login") ||
+        errorMsg.toLowerCase().includes("fresh login") ||
+        errorMsg.toLowerCase().includes("requires-recent-login");
+
       toast({
         variant: "destructive",
-        title: "Error deleting account",
-        description: error instanceof Error ? error.message : "An error occurred",
+        title: isRecentLoginError ? "Fresh Login Required" : "Error deleting account",
+        description: isRecentLoginError 
+          ? "For security reasons, you must freshly sign in before deleting your account. Please log out and sign back in, then try again." 
+          : error instanceof Error ? error.message : "An error occurred",
       });
       console.error("Account deletion error:", error);
     } finally {
@@ -210,7 +224,11 @@ export default function Profile() {
               Danger Zone
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-4">
+          <CardContent className="pt-4 space-y-4">
+            <div className="bg-amber-50/80 border border-amber-200/60 rounded-lg p-3 text-xs text-amber-800 dark:bg-amber-950/20 dark:border-amber-900/30 dark:text-amber-400">
+              <span className="font-semibold">Security Note:</span> To delete your account, you must have logged in recently. If your login session is not fresh, Clerk requires you to log out and freshly log back in before executing this action.
+            </div>
+
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Delete Account</p>
@@ -219,17 +237,62 @@ export default function Profile() {
                 </p>
               </div>
               <Button 
-                variant="destructive"
                 size="sm"
-                onClick={handleDeleteAccount}
+                onClick={() => setIsDeleteDialogOpen(true)}
                 disabled={deleting}
-                className="w-full sm:w-auto bg-red-600 hover:bg-red-500 font-normal shrink-0"
+                className="w-full sm:w-auto bg-gray-500 hover:bg-gray-400 text-white font-normal shrink-0"
               >
                 {deleting ? "Deleting..." : "Delete Account"}
               </Button>
             </div>
           </CardContent>
         </Card>
+
+        {/* Custom Confirmation Dialog */}
+        <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+          <DialogContent className="max-w-md bg-white border border-slate-200 shadow-lg rounded-xl overflow-hidden p-0">
+            <div className="bg-gray-500 px-6 py-4 text-white">
+              <DialogHeader>
+                <DialogTitle className="text-lg font-bold text-white flex items-center gap-2">
+                  <Trash2 className="w-5 h-5 text-white" />
+                  Confirm Account Deletion
+                </DialogTitle>
+                <DialogDescription className="text-xs text-slate-100">
+                  This action is permanent and cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+            </div>
+            <div className="p-6 space-y-4">
+              <p className="text-sm text-slate-600 leading-relaxed">
+                Are you absolutely sure you want to delete your account? This will permanently delete your profile, goals, tasks, and schedule data from the database.
+              </p>
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800 space-y-1">
+                <span className="font-semibold flex items-center gap-1">
+                  ⚠️ Security Requirement
+                </span>
+                <p>
+                  To delete your account, you must have logged in recently. If your login session is old, please log out and freshly log back in first.
+                </p>
+              </div>
+            </div>
+            <DialogFooter className="px-6 py-4 bg-slate-50 border-t border-slate-100 flex flex-col sm:flex-row gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsDeleteDialogOpen(false)}
+                className="w-full sm:w-auto border-slate-200 hover:bg-slate-100 text-slate-700 font-normal"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleDeleteAccount}
+                disabled={deleting}
+                className="w-full sm:w-auto bg-gray-500 hover:bg-gray-400 font-normal text-white border-none"
+              >
+                {deleting ? "Deleting..." : "Permanently Delete"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
