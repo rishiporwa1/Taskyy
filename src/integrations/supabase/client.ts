@@ -8,4 +8,29 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJh
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
-export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  global: {
+    fetch: async (url, options = {}) => {
+      const headers = new Headers(options.headers);
+      
+      if (typeof window !== "undefined" && (window as any).Clerk) {
+        try {
+          const session = (window as any).Clerk.session;
+          if (session) {
+            const token = await session.getToken({ template: "supabase" });
+            if (token) {
+              headers.set("Authorization", `Bearer ${token}`);
+            }
+          }
+        } catch (e) {
+          console.error("Error getting Clerk token for Supabase:", e);
+        }
+      }
+      
+      return fetch(url, {
+        ...options,
+        headers,
+      });
+    }
+  }
+});
