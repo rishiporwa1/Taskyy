@@ -32,13 +32,29 @@ export default function Profile() {
     try {
       if (!user) throw new Error("No user");
 
-      const { data, error } = await supabase
+      let { data, error } = await supabase
         .from("profiles")
         .select()
         .eq("id", user.id)
         .single();
 
-      if (error) throw error;
+      if (error && error.code === "PGRST116") {
+        // Self-healing: if profile doesn't exist, create it!
+        const { data: insertedData, error: insertError } = await supabase
+          .from("profiles")
+          .insert({
+            id: user.id,
+            full_name: user.user_metadata?.full_name || "New User",
+          })
+          .select()
+          .single();
+
+        if (insertError) throw insertError;
+        data = insertedData;
+        error = null;
+      } else if (error) {
+        throw error;
+      }
       
       // Ensure we have a cover_url property (even if it doesn't exist in the DB yet)
       const profileData: Profile = {
