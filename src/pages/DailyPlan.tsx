@@ -40,8 +40,9 @@ export default function DailyPlan() {
   }, [user]);
 
   const fetchTasks = async () => {
+    if (!user) return;
     try {
-      const { data, error } = await supabase.from('daily_tasks').select('*').order('created_at', {
+      const { data, error } = await supabase.from('daily_tasks').select('*').eq('user_id', user.id).order('created_at', {
         ascending: true
       });
       if (error) throw error;

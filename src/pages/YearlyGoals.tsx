@@ -69,11 +69,12 @@ export default function YearlyGoals() {
   }, [user]);
 
   const fetchGoals = async () => {
+    if (!user) return;
     try {
       const {
         data,
         error
-      } = await supabase.from('yearly_goals').select('id, title, description').order('created_at', {
+      } = await supabase.from('yearly_goals').select('id, title, description').eq('user_id', user.id).order('created_at', {
         ascending: true
       });
       if (error) throw error;

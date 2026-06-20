@@ -63,11 +63,12 @@ export default function MonthlyPlan() {
   }, [user, goalId]);
 
   const fetchGoal = async () => {
+    if (!user || !goalId) return;
     try {
       const {
         data: goalData,
         error: goalError
-      } = await supabase.from('yearly_goals').select('*').eq('id', goalId).single();
+      } = await supabase.from('yearly_goals').select('*').eq('id', goalId).eq('user_id', user.id).single();
       if (goalError) throw goalError;
       setGoal(goalData);
       setLoading(false);
@@ -82,11 +83,12 @@ export default function MonthlyPlan() {
   };
 
   const fetchTasks = async () => {
+    if (!user || !goalId) return;
     try {
       const {
         data: tasksData,
         error: tasksError
-      } = await supabase.from('monthly_tasks').select('*').eq('goal_id', goalId).order('created_at', {
+      } = await supabase.from('monthly_tasks').select('*').eq('goal_id', goalId).eq('user_id', user.id).order('created_at', {
         ascending: true
       });
       if (tasksError) throw tasksError;

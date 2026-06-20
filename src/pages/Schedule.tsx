@@ -44,11 +44,12 @@ const Schedule = () => {
   }, [user]);
 
   const fetchSchedule = async () => {
+    if (!user) return;
     try {
       const {
         data,
         error
-      } = await supabase.from('schedule_items').select('*').order('time', {
+      } = await supabase.from('schedule_items').select('*').eq('user_id', user.id).order('time', {
         ascending: true
       });
       if (error) throw error;
