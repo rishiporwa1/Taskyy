@@ -3,6 +3,24 @@ import { useNavigate } from "react-router-dom";
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { toast } from "@/components/ui/use-toast";
 
+// Helper to convert Clerk string user ID into a valid, deterministic UUID
+export function getDeterministicUUID(str: string): string {
+  if (!str) return "";
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57, h3 = 0xfae12f38, h4 = 0x9e3779b9;
+  for (let i = 0; i < str.length; i++) {
+    const ch = str.charCodeAt(i);
+    h1 = Math.imul(h1 ^ ch, 2654435761);
+    h2 = Math.imul(h2 ^ ch, 1597334677);
+    h3 = Math.imul(h3 ^ ch, 3242194837);
+    h4 = Math.imul(h4 ^ ch, 4294967291);
+  }
+  const hex = (val: number) => (val >>> 0).toString(16).padStart(8, '0');
+  const fullHex = hex(h1) + hex(h2) + hex(h3) + hex(h4);
+  
+  // Format as standard UUID: xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx
+  return `${fullHex.substring(0, 8)}-${fullHex.substring(8, 12)}-4${fullHex.substring(13, 16)}-a${fullHex.substring(17, 20)}-${fullHex.substring(20, 32)}`;
+}
+
 interface MappedUser {
   id: string;
   email: string;
@@ -26,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const user: MappedUser | null = clerkUser
     ? {
-        id: clerkUser.id,
+        id: getDeterministicUUID(clerkUser.id),
         email: clerkUser.primaryEmailAddress?.emailAddress || "",
         user_metadata: {
           full_name: clerkUser.fullName || clerkUser.username || "",

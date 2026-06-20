@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { getDeterministicUUID } from "@/components/AuthProvider";
 
 export default function Auth() {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -42,7 +43,7 @@ export default function Auth() {
   const createProfileRecord = async (userId: string, name: string) => {
     try {
       await supabase.from("profiles").upsert({
-        id: userId,
+        id: getDeterministicUUID(userId),
         full_name: name || email.split("@")[0],
       });
     } catch (err) {
