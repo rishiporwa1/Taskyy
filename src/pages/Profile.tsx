@@ -87,7 +87,7 @@ export default function Profile() {
     if (!user) return;
     
     const confirmDelete = window.confirm(
-      "Are you absolutely sure you want to permanently delete your account? This will delete all your profile data, yearly goals, monthly tasks, daily tasks, and schedule. This action cannot be undone."
+      "Are you absolutely sure you want to permanently delete your account? This will delete all your profile data, yearly goals, monthly tasks, daily tasks, and schedule. This action cannot be undone.\n\nNote: For security reasons, you must have logged in recently. If your login session is old, please log out, log back in, and try again."
     );
     
     if (!confirmDelete) return;
@@ -140,11 +140,21 @@ export default function Profile() {
         });
         await signOut();
       }
-    } catch (error) {
+    } catch (error: any) {
+      const errorMsg = error?.message || error?.longMessage || "";
+      const isRecentLoginError = 
+        error?.errors?.[0]?.code === "user_reauthentication_required" || 
+        errorMsg.toLowerCase().includes("reauthenticate") ||
+        errorMsg.toLowerCase().includes("recent login") ||
+        errorMsg.toLowerCase().includes("fresh login") ||
+        errorMsg.toLowerCase().includes("requires-recent-login");
+
       toast({
         variant: "destructive",
-        title: "Error deleting account",
-        description: error instanceof Error ? error.message : "An error occurred",
+        title: isRecentLoginError ? "Fresh Login Required" : "Error deleting account",
+        description: isRecentLoginError 
+          ? "For security reasons, you must freshly sign in before deleting your account. Please log out and sign back in, then try again." 
+          : error instanceof Error ? error.message : "An error occurred",
       });
       console.error("Account deletion error:", error);
     } finally {
@@ -210,7 +220,11 @@ export default function Profile() {
               Danger Zone
             </CardTitle>
           </CardHeader>
-          <CardContent className="pt-4">
+          <CardContent className="pt-4 space-y-4">
+            <div className="bg-amber-50/80 border border-amber-200/60 rounded-lg p-3 text-xs text-amber-800 dark:bg-amber-950/20 dark:border-amber-900/30 dark:text-amber-400">
+              <span className="font-semibold">Security Note:</span> To delete your account, you must have logged in recently. If your login session is not fresh, Clerk requires you to log out and freshly log back in before executing this action.
+            </div>
+
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
               <div>
                 <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Delete Account</p>
