@@ -75,7 +75,7 @@ export default function Auth() {
           description: "You have successfully signed in.",
         });
         navigate("/profile");
-      } else if (result.status === "needs_second_factor" || result.status === "needs_client_trust") {
+      } else if ((result.status as string) === "needs_second_factor") {
         const factor = result.supportedSecondFactors?.find(
           (f) => f.strategy === "totp" || f.strategy === "email_code" || f.strategy === "phone_code" || f.strategy === "backup_code"
         );
