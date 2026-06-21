@@ -10,7 +10,7 @@ const SUPABASE_PUBLISHABLE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || "eyJh
 
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   global: {
-    fetch: async (url, options = {}) => {
+    fetch: async (url, options: RequestInit = {}) => {
       const headers = new Headers(options.headers);
       
       if (typeof window !== "undefined" && (window as any).Clerk) {
