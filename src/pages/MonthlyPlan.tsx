@@ -103,10 +103,11 @@ export default function MonthlyPlan() {
   };
 
   const deleteTask = async (taskId: string) => {
+    if (!user) return;
     try {
       const {
         error
-      } = await supabase.from('monthly_tasks').delete().eq('id', taskId);
+      } = await supabase.from('monthly_tasks').delete().eq('id', taskId).eq('user_id', user.id);
       if (error) throw error;
       setTasks(tasks.filter(task => task.id !== taskId));
       toast({
@@ -155,6 +156,7 @@ export default function MonthlyPlan() {
   };
 
   const toggleTask = async (taskId: string) => {
+    if (!user) return;
     try {
       const task = tasks.find(t => t.id === taskId);
       if (!task) return;
@@ -162,7 +164,7 @@ export default function MonthlyPlan() {
         error
       } = await supabase.from('monthly_tasks').update({
         completed: !task.completed
-      }).eq('id', taskId);
+      }).eq('id', taskId).eq('user_id', user.id);
       if (error) throw error;
       setTasks(tasks.map(task => task.id === taskId ? {
         ...task,

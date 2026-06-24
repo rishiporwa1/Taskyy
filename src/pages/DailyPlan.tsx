@@ -85,12 +85,13 @@ export default function DailyPlan() {
   };
 
   const toggleTask = async (taskId: string) => {
+    if (!user) return;
     try {
       const task = tasks.find(t => t.id === taskId);
       if (!task) return;
       const { error } = await supabase.from('daily_tasks').update({
         completed: !task.completed
-      }).eq('id', taskId);
+      }).eq('id', taskId).eq('user_id', user.id);
       if (error) throw error;
       setTasks(tasks.map(task => task.id === taskId ? {
         ...task,
@@ -106,8 +107,9 @@ export default function DailyPlan() {
   };
 
   const deleteTask = async (taskId: string) => {
+    if (!user) return;
     try {
-      const { error } = await supabase.from('daily_tasks').delete().eq('id', taskId);
+      const { error } = await supabase.from('daily_tasks').delete().eq('id', taskId).eq('user_id', user.id);
       if (error) throw error;
       setTasks(tasks.filter(task => task.id !== taskId));
       toast({

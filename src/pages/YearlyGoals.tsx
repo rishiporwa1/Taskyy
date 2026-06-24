@@ -34,11 +34,11 @@ export default function YearlyGoals() {
     try {
       const {
         error: monthlyTasksError
-      } = await supabase.from('monthly_tasks').delete().eq('goal_id', goalId);
+      } = await supabase.from('monthly_tasks').delete().eq('goal_id', goalId).eq('user_id', user.id);
       if (monthlyTasksError) throw monthlyTasksError;
       const {
         error: goalError
-      } = await supabase.from('yearly_goals').delete().eq('id', goalId);
+      } = await supabase.from('yearly_goals').delete().eq('id', goalId).eq('user_id', user.id);
       if (goalError) throw goalError;
       setGoals(goals.filter(goal => goal.id !== goalId));
       toast({

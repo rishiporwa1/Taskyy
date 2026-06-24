@@ -97,6 +97,7 @@ const Schedule = () => {
   };
 
   const toggleScheduleItem = async (itemId: string) => {
+    if (!user) return;
     try {
       const item = schedule.find(i => i.id === itemId);
       if (!item) return;
@@ -104,7 +105,7 @@ const Schedule = () => {
         error
       } = await supabase.from('schedule_items').update({
         completed: !item.completed
-      }).eq('id', itemId);
+      }).eq('id', itemId).eq('user_id', user.id);
       if (error) throw error;
       setSchedule(schedule.map(item => item.id === itemId ? {
         ...item,
@@ -120,10 +121,11 @@ const Schedule = () => {
   };
 
   const deleteScheduleItem = async (itemId: string) => {
+    if (!user) return;
     try {
       const {
         error
-      } = await supabase.from('schedule_items').delete().eq('id', itemId);
+      } = await supabase.from('schedule_items').delete().eq('id', itemId).eq('user_id', user.id);
       if (error) throw error;
       setSchedule(schedule.filter(item => item.id !== itemId));
       toast({
