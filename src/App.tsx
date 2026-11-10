@@ -16,6 +16,7 @@ import Navbar from "@/components/Navbar";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { useIsMobile } from "@/hooks/use-mobile";
 import MobileCalendarView from "@/components/MobileCalendarView";
+import CustomCursor from "@/components/CustomCursor";
 import { useLocation } from "react-router-dom";
 
 function CalendarWrapper() {
@@ -90,6 +91,7 @@ function App() {
               </Routes>
               <CalendarWrapper />
             </main>
+            <CustomCursor />
             <Toaster />
           </div>
         </AuthProvider>

@@ -10,10 +10,11 @@ import { ImageCropperModal } from "./ImageCropperModal";
 interface ProfileCoverProps {
   userId: string;
   coverUrl: string | null;
-  onCoverUpdated: () => void;
+  onCoverUpdated?: () => void;
+  readOnly?: boolean;
 }
 
-export function ProfileCover({ userId, coverUrl, onCoverUpdated }: ProfileCoverProps) {
+export function ProfileCover({ userId, coverUrl, onCoverUpdated, readOnly = false }: ProfileCoverProps) {
   const [uploading, setUploading] = useState(false);
   const [cropperImage, setCropperImage] = useState<string | null>(null);
   const [isCropperOpen, setIsCropperOpen] = useState(false);
@@ -104,21 +105,23 @@ export function ProfileCover({ userId, coverUrl, onCoverUpdated }: ProfileCoverP
         )}
         <div className="absolute inset-0 bg-black/10" />
         
-        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-          <Button 
-            size="icon" 
-            disabled={uploading}
-            className="bg-black/50 backdrop-blur-sm"
-          >
-            <input
-              type="file"
-              accept="image/png, image/jpeg, image/jpg, image/webp"
-              onChange={handleFileChange}
-              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-            />
-            <Image className="w-5 h-5" />
-          </Button>
-        </div>
+        {!readOnly && (
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+            <Button 
+              size="icon" 
+              disabled={uploading}
+              className="bg-black/50 backdrop-blur-sm hover:bg-black/70 cursor-pointer"
+            >
+              <input
+                type="file"
+                accept="image/png, image/jpeg, image/jpg, image/webp"
+                onChange={handleFileChange}
+                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+              />
+              <Image className="w-5 h-5 text-white" />
+            </Button>
+          </div>
+        )}
       </AspectRatio>
 
       {cropperImage && (

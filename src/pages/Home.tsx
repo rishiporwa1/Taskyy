@@ -1,23 +1,10 @@
-
 import Calendar from "@/components/Calendar";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import { ArrowRight, CheckCircle } from "lucide-react";
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-  type CarouselApi,
-} from "@/components/ui/carousel";
-import { useEffect, useState } from "react";
-import { useIsMobile } from "@/hooks/use-mobile";
+import ImageCarousel from "@/components/ImageCarousel";
 
 const Home = () => {
-  const [api, setApi] = useState<CarouselApi>();
-  const isMobile = useIsMobile();
-  
   const features = [
     "Track your yearly goals",
     "Plan your months effectively",
@@ -25,45 +12,14 @@ const Home = () => {
     "Schedule your day",
   ];
 
-  const images = [
-    "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b",
-    "https://images.unsplash.com/photo-1461749280684-dccba630e2f6",
-    "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d",
-    "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158",
-  ];
-
-  useEffect(() => {
-    if (!api) return;
-
-    const interval = setInterval(() => {
-      api.scrollNext();
-    }, 4000);
-
-    return () => clearInterval(interval);
-  }, [api]);
-
   return (
-    <div className="space-y-4 sm:space-y-6 md:space-y-8">
-      <Carousel setApi={setApi} className="w-full max-w-4xl mx-auto">
-        <CarouselContent>
-          {images.map((image, index) => (
-            <CarouselItem key={index}>
-              <div className="p-1">
-                <img
-                  src={`${image}?w=1200&h=400&fit=crop&auto=format`}
-                  alt={`Study environment ${index + 1}`}
-                  className="w-full h-[200px] sm:h-[250px] md:h-[300px] object-cover rounded-lg"
-                />
-              </div>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious className="hidden sm:flex" />
-        <CarouselNext className="hidden sm:flex" />
-      </Carousel>
+    <div className="space-y-6 sm:space-y-8">
+      {/* Full-width Carousel aligned with container edges */}
+      <ImageCarousel />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
-        <div className="space-y-4 sm:space-y-6 animate-fade-in">
+      {/* Balanced 12-col grid: Left content 7 cols, Calendar 5 cols */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 lg:gap-10 items-start">
+        <div className="lg:col-span-7 xl:col-span-8 space-y-4 sm:space-y-6 animate-fade-in">
           <div className="space-y-2">
             <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-slate-950">
               Welcome to Taskyy
@@ -71,7 +27,7 @@ const Home = () => {
             <p className="text-base sm:text-lg text-gray-600">
               Your personal task manager for achieving goals and staying organized.
             </p>
-            <p className="text-sm italic text-indigo-600/80 dark:text-indigo-400/80 border-l-2 border-indigo-400 pl-3 py-0.5 mt-2 animate-fade-in" style={{ animationDelay: "0.1s" }}>
+            <p className="text-sm italic font-serif border-l-2 border-amber-500 pl-3 py-0.5 mt-2 text-amber-700 bg-amber-50/60 rounded-r-md animate-fade-in" style={{ animationDelay: "0.1s" }}>
               "Organize your chaos, master your time."
             </p>
           </div>
@@ -89,8 +45,8 @@ const Home = () => {
             ))}
           </div>
 
-          <div className="flex space-x-4">
-            <Button asChild className="bg-gray-500 hover:bg-gray-400 text-white text-sm sm:text-base font-normal">
+          <div className="flex space-x-4 pt-1">
+            <Button asChild className="bg-gray-500 hover:bg-gray-400 text-white text-sm sm:text-base font-normal cursor-pointer">
               <Link to="/yearly-goals">
                 Start Planning <ArrowRight className="ml-2 w-3 h-3 sm:w-4 sm:h-4" />
               </Link>
@@ -98,7 +54,7 @@ const Home = () => {
           </div>
         </div>
 
-        <div className="animate-fade-in mt-4 md:mt-0 hidden md:block" style={{ animationDelay: "0.3s" }}>
+        <div className="lg:col-span-5 xl:col-span-4 animate-fade-in mt-4 lg:mt-0 hidden md:flex md:justify-end" style={{ animationDelay: "0.3s" }}>
           <Calendar />
         </div>
       </div>
