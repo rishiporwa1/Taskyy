@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSignIn } from "@clerk/clerk-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -20,12 +20,12 @@ export default function ResetPassword() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
-  // If a reset flow was already initiated elsewhere, we can transition to 'reset' step automatically
-  useState(() => {
+  // If a reset flow was already initiated elsewhere, transition to 'reset' step automatically
+  useEffect(() => {
     if (isLoaded && signIn?.status === "needs_first_factor") {
       setStep("reset");
     }
-  });
+  }, [isLoaded, signIn?.status]);
 
   const handleSendCode = async (e: React.FormEvent) => {
     e.preventDefault();
