@@ -259,8 +259,37 @@ export default function Profile() {
     return <div className="flex justify-center p-8">Profile not found</div>;
   }
 
-  // Calculated Resume Rating (Base 80 + bonus for uploaded resume & active goals)
-  const resumeScore = profile.resume_url ? (profile.progress_score || 88) : 0;
+  // Real ATS score from analysis — null means pending/not yet analyzed
+  const resumeScore: number | null = profile.resume_url
+    ? (profile.progress_score ?? null)
+    : null;
+
+  // Derive ATS criteria from the actual score (shown in showcase card)
+  const atsCriteria = (() => {
+    if (resumeScore === null) return null;
+    return [
+      {
+        name: "Format: PDF",
+        passed: true,
+        description: "Resume uploaded as PDF",
+      },
+      {
+        name: "Clear Structure",
+        passed: resumeScore >= 40,
+        description: resumeScore >= 40 ? "Sections detected" : "Weak section structure",
+      },
+      {
+        name: "ATS Parsable",
+        passed: resumeScore >= 55,
+        description: resumeScore >= 55 ? "Keywords found" : "Low keyword coverage",
+      },
+      {
+        name: "Impact-Driven",
+        passed: resumeScore >= 70,
+        description: resumeScore >= 70 ? "Quantified results present" : "No measurable results",
+      },
+    ];
+  })();
 
   // -------------------------------------------------------------
   // TEMPLATE 2: EDIT PROFILE & ACCOUNT SETTINGS
@@ -587,42 +616,53 @@ export default function Profile() {
                     <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">
                       Overall Rating
                     </span>
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-3xl font-black text-slate-900">{resumeScore}</span>
-                      <span className="text-xs text-gray-500">/ 100</span>
-                    </div>
-                    <span className="text-xs text-gray-600 font-medium flex items-center gap-1.5">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-primary-dark" /> Verified Presentation
-                    </span>
+                    {resumeScore === null ? (
+                      <div className="flex items-center gap-2 py-1">
+                        <div className="w-4 h-4 border-2 border-primary-dark border-t-transparent rounded-full animate-spin" />
+                        <span className="text-sm font-semibold text-slate-600">Analyzing…</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-3xl font-black text-slate-900">{resumeScore}</span>
+                        <span className="text-xs text-gray-500">/ 100</span>
+                      </div>
+                    )}
+                    {resumeScore !== null && (
+                      <span className="text-xs text-gray-600 font-medium flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-primary-dark" /> ATS Analyzed
+                      </span>
+                    )}
                   </div>
 
                   <div className="w-16 h-16 rounded-full border-4 border-primary-dark flex items-center justify-center font-bold text-sm text-primary-dark shadow-xs bg-white">
-                    {resumeScore}%
+                    {resumeScore !== null ? `${resumeScore}%` : "—"}
                   </div>
                 </div>
 
-                {/* ATS Criteria Breakdown */}
-                <div className="space-y-2">
-                  <span className="text-xs font-semibold text-gray-700 block">Readiness Criteria</span>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="flex items-center gap-1.5 p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 font-medium">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-primary-dark" />
-                      <span>Format: PDF</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 font-medium">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-primary-dark" />
-                      <span>Clear Structure</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 font-medium">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-primary-dark" />
-                      <span>ATS Parsable</span>
-                    </div>
-                    <div className="flex items-center gap-1.5 p-2 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 font-medium">
-                      <CheckCircle2 className="w-3.5 h-3.5 text-primary-dark" />
-                      <span>Role Aligned</span>
+                {/* ATS Criteria Breakdown — dynamic from real analysis */}
+                {atsCriteria && (
+                  <div className="space-y-2">
+                    <span className="text-xs font-semibold text-gray-700 block">Readiness Criteria</span>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      {atsCriteria.map((c) => (
+                        <div
+                          key={c.name}
+                          title={c.description}
+                          className={`flex items-center gap-1.5 p-2 rounded-lg border font-medium transition-colors ${
+                            c.passed
+                              ? "bg-slate-50 border-slate-200 text-slate-700"
+                              : "bg-red-50/60 border-red-200/80 text-red-600"
+                          }`}
+                        >
+                          <CheckCircle2
+                            className={`w-3.5 h-3.5 shrink-0 ${c.passed ? "text-primary-dark" : "text-red-400"}`}
+                          />
+                          <span>{c.name}</span>
+                        </div>
+                      ))}
                     </div>
                   </div>
-                </div>
+                )}
 
                 {/* Small Document Preview */}
                 <div className="space-y-1.5">
