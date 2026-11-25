@@ -43,7 +43,6 @@ Taskyy/
 │   ├── App.tsx
 │   ├── main.tsx
 │   └── index.css
-├── .env.example              # Environment variable template
 ├── vercel.json               # SPA routing config for Vercel
 └── vite.config.ts
 ```
@@ -62,10 +61,7 @@ npm install
 ```
 
 ### 3. Configure environment variables
-Copy `.env.example` to `.env` and fill in your keys:
-```bash
-cp .env.example .env
-```
+Create a `.env` file in the project root and fill in your keys:
 
 ```env
 VITE_CLERK_PUBLISHABLE_KEY=pk_test_...
